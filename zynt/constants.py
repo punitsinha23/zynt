@@ -14,3 +14,5 @@ INDEX_FILE = ".zynt/index"
 CONFIG_FILE = ".zynt/config.json"
 
 MAIN_BRANCH = "main"
+
+REPOSITORY_VERSION = 1
