@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 
 def create_directory(relative_path):
@@ -28,26 +29,36 @@ def find_repository():
     
         current_path = current_path.parent
 
+def get_working_files():
+    root_path = Path.cwd()
+    exclude = ['.git', '.zynt']
+    working_files = []
+    for file in root_path.rglob("*"):
+        if file.is_file():
+            file_part = Path(file).parts
+            if  not any(item in file_part for item in exclude):
+                working_files.append(file.relative_to(root_path))
     
-        
+    return working_files
+            
 
+
+def write_file(relative_path, content):
+    file_path = Path.cwd() / relative_path
+    file_path.write_text(content)
+
+
+def read_file(relative_path):
+    file_path = Path.cwd() / relative_path
+    return file_path.read_text()
+
+
+def read_json(relative_path):
+    content = read_file(relative_path)
+    return json.loads(content)
+
+def write_json(relative_path, content):
+    write_file( relative_path , json.dumps(content, indent=4))
     
-
-
-    
-
-find_repository()
-
-def write_file():
-    pass
-
-def read_file():
-    pass
-
-def read_json():
-    pass
-
-def write_json():
-    pass
 
     
