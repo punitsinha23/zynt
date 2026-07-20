@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import hashlib
 
 
 def create_directory(relative_path):
@@ -59,6 +60,47 @@ def read_json(relative_path):
 
 def write_json(relative_path, content):
     write_file( relative_path , json.dumps(content, indent=4))
+
+def hash_file(content):
+    sha1_hash = hashlib.sha1(content.encode('utf-8'))
+    return sha1_hash.hexdigest()
+
+def get_untracked_files():
+    untracked_files = []
+    repository = find_repository()
+
+        
+    index_path = repository / ".zynt" / "index"
+    index = read_json(index_path)
+    working_files = get_working_files()
+
+    for files in working_files:
+        file_path = str(files)
+        if file_path not in index:
+            untracked_files.append(file_path)
+
+    return untracked_files
+
+def get_modified_files():
+    modified_files = []
+    repository = find_repository()
+    index_path = repository / ".zynt" / "index"
+    index = read_json(index_path)
+
+    for file_path, stored_hash in index.items():
+        content = read_file(file_path)
+        new_hash = hash_file(content)
+        
+        if new_hash != stored_hash:
+            modified_files.append(file_path)
+            
+    return modified_files
+
+        
+      
+        
+
+
     
 
     

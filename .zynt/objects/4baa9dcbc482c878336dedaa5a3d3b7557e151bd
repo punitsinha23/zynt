@@ -2,7 +2,10 @@ from zynt import repository
 
 def main():
     repo = repository.Repository()
+    repo.init()
+    repo.add('main.py')
     repo.status()
+    print("hello")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,14 @@
 from pathlib import Path
-from .utils import create_directory, create_file
+from .utils import (create_directory, create_file, read_file, read_json, 
+                    find_repository, write_file, write_json, 
+                    get_working_files, hash_file, get_untracked_files
+                    )
+
+from .utils import get_modified_files
+
 from .constants import ZYNT_DIR, OBJECTS_DIR, REFS_DIR, HEAD_FILE, HEADS_DIR, INDEX_FILE, CONFIG_FILE, MAIN_BRANCH, REPOSITORY_VERSION
 import json
+import hashlib
 
 
 class Repository: 
@@ -28,6 +35,44 @@ class Repository:
         create_file(branch_file)
         print(f"Initialized empty Zynt repository at {repo_path}")
           
+    
+    def status(self):
+        repository = find_repository()
+        if repository is None:
+            print("No Repository created yet. Run zynt init to make one.")
+            return
+        untracked_files = get_untracked_files()
+        print("\nUntrakced Files:\n")
+        for file in untracked_files:
+            print(f"    {file}")
+        
+        modified_files = get_modified_files()
+        print("\nModified Files:\n")
+        for file in modified_files:
+            print(f"    {file}")
+        
+
+    
+    def add(self , file_path):
+        content = read_file(file_path)
+        content_hash = hash_file(content)
+
+        index = read_json(INDEX_FILE)
+        index[str(file_path)] = content_hash
+        write_json(INDEX_FILE, index)
+        
+        write_file(f".zynt/objects/{content_hash}" , content)
+
+
+
+
+        
+                
+             
+
+        
+        
+
           
     
 
