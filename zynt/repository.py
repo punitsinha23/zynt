@@ -4,11 +4,12 @@ from .utils import (create_directory, create_file, read_file, read_json,
                     get_working_files, hash_file, get_untracked_files
                     )
 
-from .utils import get_modified_files
-
+from .utils import get_modified_files, get_latest_commit
 from .constants import ZYNT_DIR, OBJECTS_DIR, REFS_DIR, HEAD_FILE, HEADS_DIR, INDEX_FILE, CONFIG_FILE, MAIN_BRANCH, REPOSITORY_VERSION
 import json
 import hashlib
+import datetime 
+import json
 
 
 class Repository: 
@@ -41,6 +42,8 @@ class Repository:
         if repository is None:
             print("No Repository created yet. Run zynt init to make one.")
             return
+
+        
         untracked_files = get_untracked_files()
         print("\nUntrakced Files:\n")
         for file in untracked_files:
@@ -50,6 +53,7 @@ class Repository:
         print("\nModified Files:\n")
         for file in modified_files:
             print(f"    {file}")
+
         
 
     
@@ -63,6 +67,33 @@ class Repository:
         
         write_file(f".zynt/objects/{content_hash}" , content)
 
+    def commit(self , message ):
+        index = read_json(INDEX_FILE)
+        if not index:
+            print("Nothing to commit.")
+            return
+
+        current_parent = read_file(f"{HEADS_DIR}/{MAIN_BRANCH}")
+        parent = current_parent or None
+            
+        date_time = datetime.datetime.now()
+        commit = {
+            'message' : message,
+            'parent' : parent,
+            'timestamp': date_time.timestamp(),
+            'files' : index 
+        }
+
+        commit_json = json.dumps(commit, indent=4)
+        commit_hash = hash_file(commit_json)
+        write_file( f"{OBJECTS_DIR}/{commit_hash}", commit_json)
+        write_file(f"{HEADS_DIR}/{MAIN_BRANCH}", commit_hash)
+        write_json(INDEX_FILE, {})
+        print(f"[{MAIN_BRANCH} {commit_hash[:7]}] {message}")
+        
+    
+        
+      
 
 
 

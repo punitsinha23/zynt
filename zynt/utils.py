@@ -68,26 +68,35 @@ def hash_file(content):
 def get_untracked_files():
     untracked_files = []
     repository = find_repository()
+    if not repository:
+        print("No repository exists.")
+        return
+    
+    latest_commit = get_latest_commit()
+    if latest_commit:
+        latest_commit_files = latest_commit.get("files")
+    else:
+        latest_commit_files = {}
 
-        
-    index_path = repository / ".zynt" / "index"
-    index = read_json(index_path)
     working_files = get_working_files()
 
     for files in working_files:
         file_path = str(files)
-        if file_path not in index:
+        if file_path not in latest_commit_files:
             untracked_files.append(file_path)
 
     return untracked_files
 
 def get_modified_files():
     modified_files = []
-    repository = find_repository()
-    index_path = repository / ".zynt" / "index"
-    index = read_json(index_path)
+    latest_commit = get_latest_commit()
+    if latest_commit:
+        latest_commit_files = latest_commit["files"]
+    else:
+        latest_commit_files = {}
+        
 
-    for file_path, stored_hash in index.items():
+    for file_path, stored_hash in latest_commit_files.items():
         content = read_file(file_path)
         new_hash = hash_file(content)
         
@@ -96,7 +105,13 @@ def get_modified_files():
             
     return modified_files
 
-        
+def get_latest_commit():
+    commit_hash = read_file(".zynt/refs/heads/main")
+    if not commit_hash:
+        return
+    
+    commit_file = read_json(f".zynt/objects/{commit_hash}")
+    return commit_file
       
         
 
