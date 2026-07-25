@@ -1,7 +1,23 @@
 from pathlib import Path
 import json
 import hashlib
+from .constants import INDEX_FILE
 
+exclude_dirs = {
+    ".git",
+    ".zynt",
+    "__pycache__",
+    "zynt.egg-info",
+    ".venv",
+    "venv",
+    ".idea",
+    ".vscode",
+}
+
+exclude_extensions = {
+    ".pyc",
+    ".pyo",
+}
 
 def create_directory(relative_path):
     path = Path.cwd()
@@ -32,13 +48,17 @@ def find_repository():
 
 def get_working_files():
     root_path = Path.cwd()
-    exclude = ['.git', '.zynt']
     working_files = []
     for file in root_path.rglob("*"):
         if file.is_file():
-            file_part = Path(file).parts
-            if  not any(item in file_part for item in exclude):
-                working_files.append(file.relative_to(root_path))
+
+            if any(part in exclude_dirs for part in file.parts):
+                continue
+
+            if file.suffix in exclude_extensions:
+                continue
+
+            working_files.append(file.relative_to(root_path))
     
     return working_files
             
@@ -68,6 +88,7 @@ def hash_file(content):
 def get_untracked_files():
     untracked_files = []
     repository = find_repository()
+    index = read_json(INDEX_FILE)
     if not repository:
         print("No repository exists.")
         return
@@ -82,21 +103,18 @@ def get_untracked_files():
 
     for files in working_files:
         file_path = str(files)
-        if file_path not in latest_commit_files:
+        if file_path not in latest_commit_files and file_path not in index:
             untracked_files.append(file_path)
 
     return untracked_files
 
 def get_modified_files():
     modified_files = []
-    latest_commit = get_latest_commit()
-    if latest_commit:
-        latest_commit_files = latest_commit["files"]
-    else:
-        latest_commit_files = {}
+    index = read_json(INDEX_FILE)
+
         
 
-    for file_path, stored_hash in latest_commit_files.items():
+    for file_path, stored_hash in index.items():
         content = read_file(file_path)
         new_hash = hash_file(content)
         

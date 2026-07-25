@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: zynt
+Version: 0.1.0
+Summary: A mini-version control system written in Python
+Requires-Python: >=3.13

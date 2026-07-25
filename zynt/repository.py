@@ -5,11 +5,18 @@ from .utils import (create_directory, create_file, read_file, read_json,
                     )
 
 from .utils import get_modified_files, get_latest_commit
-from .constants import ZYNT_DIR, OBJECTS_DIR, REFS_DIR, HEAD_FILE, HEADS_DIR, INDEX_FILE, CONFIG_FILE, MAIN_BRANCH, REPOSITORY_VERSION
+from .constants import (ZYNT_DIR, OBJECTS_DIR, REFS_DIR, 
+                        HEAD_FILE, HEADS_DIR, INDEX_FILE, 
+                        CONFIG_FILE, MAIN_BRANCH, REPOSITORY_VERSION)
 import json
 import hashlib
 import datetime 
 import json
+
+from colorama import Fore, Style, init
+
+init()
+
 
 
 class Repository: 
@@ -20,7 +27,7 @@ class Repository:
         repo_path = self.path/ ZYNT_DIR
 
         if repo_path.exists():
-            print("Repository already exists.")
+            print(f"{Fore.RED}Repository already exists.{Style.RESET_ALL}")
             return
         
         index = {}
@@ -34,25 +41,25 @@ class Repository:
         create_file(INDEX_FILE, json.dumps(index, indent=4))
         create_file(CONFIG_FILE, json.dumps(config, indent=4) )
         create_file(branch_file)
-        print(f"Initialized empty Zynt repository at {repo_path}")
+        print(f"{Fore.GREEN}Initialized empty Zynt repository at {repo_path}{Style.RESET_ALL}")
           
     
     def status(self):
         repository = find_repository()
         if repository is None:
-            print("No Repository created yet. Run zynt init to make one.")
+            print(f"{Fore.RED}No Repository created yet. Run zynt init to make one.{Style.RESET_ALL}")
             return
 
         
         untracked_files = get_untracked_files()
-        print("\nUntrakced Files:\n")
+        print(f"\n{Fore.RED}Untrakced Files:{Style.RESET_ALL}\n")
         for file in untracked_files:
-            print(f"    {file}")
+            print(f" {Fore.RED}{file}{Style.RESET_ALL}")
         
         modified_files = get_modified_files()
-        print("\nModified Files:\n")
+        print(f"\n{Fore.GREEN}Modified Files:{Style.RESET_ALL}\n")
         for file in modified_files:
-            print(f"    {file}")
+            print(f" {Fore.GREEN}{file}{Style.RESET_ALL}")
 
         
 
@@ -70,7 +77,7 @@ class Repository:
     def commit(self , message ):
         index = read_json(INDEX_FILE)
         if not index:
-            print("Nothing to commit.")
+            print(f"{Fore.RED}Nothing to commit.{Style.RESET_ALL}")
             return
 
         current_parent = read_file(f"{HEADS_DIR}/{MAIN_BRANCH}")
@@ -88,8 +95,7 @@ class Repository:
         commit_hash = hash_file(commit_json)
         write_file( f"{OBJECTS_DIR}/{commit_hash}", commit_json)
         write_file(f"{HEADS_DIR}/{MAIN_BRANCH}", commit_hash)
-        write_json(INDEX_FILE, {})
-        print(f"[{MAIN_BRANCH} {commit_hash[:7]}] {message}")
+        print(f"{Fore.GREEN}[{MAIN_BRANCH} {commit_hash[:7]}] {message}{Style.RESET_ALL}")
         
     
         

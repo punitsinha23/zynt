@@ -1,15 +1,4 @@
-from zynt import repository
-
-
-def main():
-    repo = repository.Repository()
-
-    repo.add("main.py")
-    repo.add("test2.txt")
-    repo.commit("second commit.")
-    # Show repository status
-    repo.status()
-
+from zynt.cli import main
 
 if __name__ == "__main__":
     main()

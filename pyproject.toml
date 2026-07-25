@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zynt"
+version = "0.1.0"
+description = "A mini-version control system written in Python"
+requires-python = ">=3.13"
+
+[project.scripts]
+zynt = "zynt.cli:main"
