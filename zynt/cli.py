@@ -6,6 +6,7 @@ def main():
     subparsers = parser.add_subparsers(dest='command')
     subparsers.add_parser('init')
     subparsers.add_parser('status')
+    subparsers.add_parser('log')
     add_parser = subparsers.add_parser("add")
     add_parser.add_argument("file")
 
@@ -22,5 +23,7 @@ def main():
         repo.status()
     elif args.command == 'add':
         repo.add(args.file)
+    elif args.command == 'log':
+        repo.log()
     elif args.command == 'commit':
         repo.commit(args.message)

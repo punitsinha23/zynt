@@ -10,12 +10,16 @@ from .constants import (ZYNT_DIR, OBJECTS_DIR, REFS_DIR,
                         CONFIG_FILE, MAIN_BRANCH, REPOSITORY_VERSION)
 import json
 import hashlib
-import datetime 
+import datetime
 import json
-
 from colorama import Fore, Style, init
 
 init()
+
+HASH = Fore.GREEN
+DATE = Fore.CYAN
+MESSAGE = Style.BRIGHT
+SEPARATOR = Fore.LIGHTBLACK_EX
 
 
 
@@ -96,10 +100,28 @@ class Repository:
         write_file( f"{OBJECTS_DIR}/{commit_hash}", commit_json)
         write_file(f"{HEADS_DIR}/{MAIN_BRANCH}", commit_hash)
         print(f"{Fore.GREEN}[{MAIN_BRANCH} {commit_hash[:7]}] {message}{Style.RESET_ALL}")
-        
-    
-        
-      
+
+    def log(self):
+        latest_hash = read_file(f"{HEADS_DIR}/{MAIN_BRANCH}")
+
+        while latest_hash:
+            latest_commit = read_json(f"{OBJECTS_DIR}/{latest_hash}")
+
+            formatted_time = datetime.datetime.fromtimestamp(
+                latest_commit["timestamp"]
+            ).strftime("%d %b %Y %I:%M:%S %p")
+
+            print(f"{HASH}commit {latest_hash[:7]}")
+            print(f"{DATE}Date: {formatted_time}")
+            print()
+            print(f"    {MESSAGE}{latest_commit['message']}")
+            print(f"{SEPARATOR}{'-' * 50}")
+            print()
+
+            latest_hash = latest_commit["parent"]
+            
+                
+            
 
 
 
