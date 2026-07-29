@@ -71,7 +71,7 @@ def write_file(relative_path, content):
 
 def read_file(relative_path):
     file_path = Path.cwd() / relative_path
-    return file_path.read_text()
+    return file_path.read_text(encoding="utf-8")
 
 
 def read_json(relative_path):

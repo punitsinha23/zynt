@@ -68,15 +68,23 @@ class Repository:
         
 
     
-    def add(self , file_path):
-        content = read_file(file_path)
-        content_hash = hash_file(content)
+    def add(self , files):
+        repo = find_repository()
 
-        index = read_json(INDEX_FILE)
-        index[str(file_path)] = content_hash
-        write_json(INDEX_FILE, index)
+        if repo is None:
+            print("No repository found. Run 'zynt init' first.")
+            return
         
-        write_file(f".zynt/objects/{content_hash}" , content)
+        index = read_json(INDEX_FILE)
+
+        for file in files:
+            content = read_file(file)
+            content_hash = hash_file(content)
+            index[str(file)] = content_hash
+            write_json(INDEX_FILE, index)
+        
+            write_file(f"{OBJECTS_DIR}/{content_hash}", content)
+        print(f"{Fore.GREEN}Added {len(files)} files to the staging area.{Style.RESET_ALL}")
 
     def commit(self , message ):
         index = read_json(INDEX_FILE)
