@@ -11,6 +11,8 @@ def main():
     add_parser = subparsers.add_parser("add")
     add_parser.add_argument("files", nargs="*")
     add_parser.add_argument("--all", action="store_true")
+    checkout_parser = subparsers.add_parser("checkout")
+    checkout_parser.add_argument("commit_hash")
 
     commit_parser = subparsers.add_parser("commit")
     commit_parser.add_argument("message")
@@ -32,3 +34,5 @@ def main():
         repo.log()
     elif args.command == 'commit':
         repo.commit(args.message)
+    elif args.command == 'checkout':
+        repo.checkout(args.commit_hash)

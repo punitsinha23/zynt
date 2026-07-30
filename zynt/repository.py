@@ -127,7 +127,27 @@ class Repository:
             print()
 
             latest_hash = latest_commit["parent"]
-            
+
+    def checkout(self, commit_hash):
+        commit_path = Path(OBJECTS_DIR) / commit_hash
+
+        if not commit_path.exists():
+            print("Commit not found.")
+            return                                                    
+    
+        commit = read_json(f"{OBJECTS_DIR}/{commit_hash}")
+        files = commit['files']
+
+        for file_path, blob_hash in files.items():
+            blob = read_file(f"{OBJECTS_DIR}/{blob_hash}")
+            write_file(file_path, blob)
+        write_file(f"{HEADS_DIR}/{MAIN_BRANCH}", commit_hash)
+        write_json(INDEX_FILE, files)
+        print(f"Checked out commit {commit_hash[:7]}")
+
+    
+
+
                 
             
 
