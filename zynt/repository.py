@@ -4,14 +4,12 @@ from .utils import (create_directory, create_file, read_file, read_json,
                     get_working_files, hash_file, get_untracked_files
                     )
 
-from .utils import get_modified_files, get_latest_commit
+from .utils import get_modified_files, get_latest_commit, is_branch, get_current_branch
 from .constants import (ZYNT_DIR, OBJECTS_DIR, REFS_DIR, 
                         HEAD_FILE, HEADS_DIR, INDEX_FILE, 
                         CONFIG_FILE, MAIN_BRANCH, REPOSITORY_VERSION)
 import json
-import hashlib
 import datetime
-import json
 from colorama import Fore, Style, init
 
 init()
@@ -22,26 +20,25 @@ MESSAGE = Style.BRIGHT
 SEPARATOR = Fore.LIGHTBLACK_EX
 
 
-
 class Repository: 
     def __init__(self):
             self.path = Path.cwd()
     
     def init(self):
         repo_path = self.path/ ZYNT_DIR
-
+        branch = MAIN_BRANCH
         if repo_path.exists():
             print(f"{Fore.RED}Repository already exists.{Style.RESET_ALL}")
             return
         
         index = {}
         config = {'repository_version': REPOSITORY_VERSION, 'default_branch' : MAIN_BRANCH}
-        branch_file = f"{HEADS_DIR}/{MAIN_BRANCH}"
+        branch_file = f"{HEADS_DIR}/{branch}"
         create_directory(ZYNT_DIR)
         create_directory(OBJECTS_DIR)
         create_directory(REFS_DIR)
         create_directory(HEADS_DIR)
-        create_file(HEAD_FILE, f"ref: refs/heads/{MAIN_BRANCH}")
+        create_file(HEAD_FILE, f"ref: refs/heads/{branch}")
         create_file(INDEX_FILE, json.dumps(index, indent=4))
         create_file(CONFIG_FILE, json.dumps(config, indent=4) )
         create_file(branch_file)
@@ -81,18 +78,20 @@ class Repository:
             content = read_file(file)
             content_hash = hash_file(content)
             index[str(file)] = content_hash
-            write_json(INDEX_FILE, index)
+            
         
             write_file(f"{OBJECTS_DIR}/{content_hash}", content)
+        write_json(INDEX_FILE, index)
         print(f"{Fore.GREEN}Added {len(files)} files to the staging area.{Style.RESET_ALL}")
 
     def commit(self , message ):
+        branch = get_current_branch()
         index = read_json(INDEX_FILE)
         if not index:
             print(f"{Fore.RED}Nothing to commit.{Style.RESET_ALL}")
             return
 
-        current_parent = read_file(f"{HEADS_DIR}/{MAIN_BRANCH}")
+        current_parent = read_file(f"{HEADS_DIR}/{branch}")
         parent = current_parent or None
             
         date_time = datetime.datetime.now()
@@ -106,11 +105,12 @@ class Repository:
         commit_json = json.dumps(commit, indent=4)
         commit_hash = hash_file(commit_json)
         write_file( f"{OBJECTS_DIR}/{commit_hash}", commit_json)
-        write_file(f"{HEADS_DIR}/{MAIN_BRANCH}", commit_hash)
-        print(f"{Fore.GREEN}[{MAIN_BRANCH} {commit_hash[:7]}] {message}{Style.RESET_ALL}")
+        write_file(f"{HEADS_DIR}/{branch}", commit_hash)
+        print(f"{Fore.GREEN}[{branch} {commit_hash[:7]}] {message}{Style.RESET_ALL}")
 
     def log(self):
-        latest_hash = read_file(f"{HEADS_DIR}/{MAIN_BRANCH}")
+        branch = get_current_branch()
+        latest_hash = read_file(f"{HEADS_DIR}/{branch}")
 
         while latest_hash:
             latest_commit = read_json(f"{OBJECTS_DIR}/{latest_hash}")
@@ -119,7 +119,7 @@ class Repository:
                 latest_commit["timestamp"]
             ).strftime("%d %b %Y %I:%M:%S %p")
 
-            print(f"{HASH}commit {latest_hash[:7]}")
+            print(f"{HASH}commit {latest_hash}")
             print(f"{DATE}Date: {formatted_time}")
             print()
             print(f"    {MESSAGE}{latest_commit['message']}")
@@ -128,41 +128,45 @@ class Repository:
 
             latest_hash = latest_commit["parent"]
 
-    def checkout(self, commit_hash):
-        commit_path = Path(OBJECTS_DIR) / commit_hash
+    def checkout(self, target):
+        branch = is_branch(target)
 
+        if branch:
+            commit_hash = read_file(f"{HEADS_DIR}/{target}")
+        else:
+            commit_hash = target
+
+        commit_path = Path(OBJECTS_DIR) / commit_hash
         if not commit_path.exists():
             print("Commit not found.")
-            return                                                    
-    
-        commit = read_json(f"{OBJECTS_DIR}/{commit_hash}")
-        files = commit['files']
+            return
 
+        commit = read_json(f"{OBJECTS_DIR}/{commit_hash}")
+        files = commit["files"]
+
+        # Restore working tree
         for file_path, blob_hash in files.items():
             blob = read_file(f"{OBJECTS_DIR}/{blob_hash}")
             write_file(file_path, blob)
-        write_file(f"{HEADS_DIR}/{MAIN_BRANCH}", commit_hash)
+    
         write_json(INDEX_FILE, files)
-        print(f"Checked out commit {commit_hash[:7]}")
 
-    
+        if branch:
+            write_file(HEAD_FILE, f"ref: refs/heads/{target}")
+            print(f"Switched to branch '{target}'")
+        else:
+            current_branch = get_current_branch()
+            write_file(f"{HEADS_DIR}/{current_branch}", commit_hash)
+            print(f"Checked out commit {commit_hash[:7]}")
 
 
-                
-            
-
-
-
+    def branch(self, branch_name ):
+        branch_path = Path(HEADS_DIR) / branch_name
+        branch = get_current_branch()
+        if branch_path.exists():
+            print(f"Branch '{branch_name}' already exists.")
+            return
         
-                
-             
-
-        
-        
-
-          
-    
-
-    
-    
-
+        current_hash = read_file(f"{HEADS_DIR}/{branch}")
+        create_file(f"{HEADS_DIR}/{branch_name}")  
+        write_file(f"{HEADS_DIR}/{branch_name}", current_hash)

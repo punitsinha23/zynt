@@ -13,6 +13,8 @@ def main():
     add_parser.add_argument("--all", action="store_true")
     checkout_parser = subparsers.add_parser("checkout")
     checkout_parser.add_argument("commit_hash")
+    branch_parser = subparsers.add_parser('branch')
+    branch_parser.add_argument('branch_name')
 
     commit_parser = subparsers.add_parser("commit")
     commit_parser.add_argument("message")
@@ -36,3 +38,5 @@ def main():
         repo.commit(args.message)
     elif args.command == 'checkout':
         repo.checkout(args.commit_hash)
+    elif args.command == "branch":
+        repo.branch(args.branch_name)

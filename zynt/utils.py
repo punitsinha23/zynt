@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 import hashlib
-from .constants import INDEX_FILE
+from .constants import INDEX_FILE, HEADS_DIR, HEAD_FILE
 
 exclude_dirs = {
     ".git",
@@ -130,8 +130,16 @@ def get_latest_commit():
     
     commit_file = read_json(f".zynt/objects/{commit_hash}")
     return commit_file
-      
-        
+
+def is_branch(name):
+    branch_path = Path.cwd() / HEADS_DIR / name
+    return branch_path.exists()
+
+def get_current_branch():
+    head = read_file(f"{HEAD_FILE}")
+    branch = head.split("/")[-1]
+    return branch
+ 
 
 
     
