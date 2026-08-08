@@ -155,8 +155,7 @@ class Repository:
             write_file(HEAD_FILE, f"ref: refs/heads/{target}")
             print(f"Switched to branch '{target}'")
         else:
-            current_branch = get_current_branch()
-            write_file(f"{HEADS_DIR}/{current_branch}", commit_hash)
+            write_file(f"{HEAD_FILE}", commit_hash)
             print(f"Checked out commit {commit_hash[:7]}")
 
 

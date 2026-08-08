@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 import hashlib
-from .constants import INDEX_FILE, HEADS_DIR, HEAD_FILE
+from .constants import INDEX_FILE, HEADS_DIR, HEAD_FILE, MAIN_BRANCH
 
 exclude_dirs = {
     ".git",
@@ -124,7 +124,7 @@ def get_modified_files():
     return modified_files
 
 def get_latest_commit():
-    commit_hash = read_file(".zynt/refs/heads/main")
+    commit_hash = read_file(f".zynt/refs/heads/{MAIN_BRANCH}")
     if not commit_hash:
         return
     
